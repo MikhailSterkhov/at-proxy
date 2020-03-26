@@ -38,6 +38,7 @@ public class ChatPacket implements ClientPacket {
         registerClientPacket(ClientVersion.V1_14_4, 0x0E);
         registerClientPacket(ClientVersion.V1_15, 0x0F);
         registerClientPacket(ClientVersion.V1_15_1, 0x0F);
+        registerClientPacket(ClientVersion.V1_15_2, 0x0F);
     }
 
     @Override

@@ -11,6 +11,8 @@ import net.advanceteam.proxy.netty.protocol.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.client.ClientPacket;
 import net.advanceteam.proxy.netty.protocol.client.manager.ClientPacketManager;
 import net.advanceteam.proxy.netty.protocol.client.packet.handshake.HandshakePacket;
+import net.advanceteam.proxy.netty.protocol.client.packet.login.EncryptionRequestPacket;
+import net.advanceteam.proxy.netty.protocol.client.packet.login.LoginRequestPacket;
 import net.advanceteam.proxy.netty.protocol.client.version.ClientVersion;
 
 import java.util.List;
@@ -19,15 +21,33 @@ public class ClientPacketDecoder extends ByteToMessageDecoder {
 
     @Setter
     @Getter
-    private String packetType = "HANDSHAKE_PACKET";
-
-    @Setter
-    @Getter
     private ClientVersion clientVersion = ClientVersion.V1_15_1;
 
+    @Setter
+    @Getter
+    private String packetType = "HANDSHAKE_PACKET";
+
+
+
+// ======================== // надо... // ======================== //
     @Getter
     @Setter
-    private HandshakePacket lastHandshakePacket;
+    private String playerName;
+
+    @Getter
+    @Setter
+    private EncryptionRequestPacket lastEncryptionRequest;
+
+    @Getter
+    @Setter
+    private HandshakePacket lastHandshake;
+
+    @Getter
+    @Setter
+    private LoginRequestPacket lastLoginRequest;
+
+// ======================== // надо... // ======================== //
+
 
 
     /**
@@ -50,9 +70,16 @@ public class ClientPacketDecoder extends ByteToMessageDecoder {
 
         ClientPacket clientPacket = packetManager.getNewPacket(packetType, clientVersion.getVersion(), packetId);
 
-        System.out.println("decode " + clientPacket.getClass().getSimpleName());
+        if (AdvanceProxy.getInstance().getProxyConfig().getProxySettings().isLogReadPacket()) {
+            AdvanceProxy.getInstance().getLogger().info("Reading packet @" + clientPacket.getClass().getSimpleName() + "(" + packetId + ")");
+        }
 
         clientPacket.readPacket(channelPacketBuffer, clientVersion.getVersion());
+
+        if (AdvanceProxy.getInstance().getProxyConfig().getProxySettings().isLogHandlePacket()) {
+            AdvanceProxy.getInstance().getLogger().info("Handling packet @" + clientPacket.getClass().getSimpleName() + "(" + packetId + ")");
+        }
+
         clientPacket.handle(channelHandlerContext.channel());
     }
 }

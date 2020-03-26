@@ -11,7 +11,6 @@ import net.advanceteam.proxy.netty.protocol.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.client.ClientPacket;
 import net.advanceteam.proxy.netty.protocol.client.annotation.ClientPacketHandler;
 import net.advanceteam.proxy.netty.protocol.client.codec.ClientPacketDecoder;
-import net.advanceteam.proxy.netty.protocol.client.codec.ClientPacketEncoder;
 import net.advanceteam.proxy.netty.protocol.client.packet.handshake.HandshakePacket;
 import net.advanceteam.proxy.netty.protocol.client.version.ClientVersion;
 
@@ -36,7 +35,7 @@ public class StatusRequestPacket implements ClientPacket {
         Favicon favicon = AdvanceProxy.getInstance().getServerFavicon();
 
         ClientPacketDecoder packetDecoder = channel.pipeline().get(ClientPacketDecoder.class);
-        HandshakePacket handshakePacket = packetDecoder.getLastHandshakePacket();
+        HandshakePacket handshakePacket = packetDecoder.getLastHandshake();
 
         for (ProxyServer proxyServer : AdvanceProxy.getInstance().getProxies()) {
             if (!handshakePacket.getHost().equals(proxyServer.getHostAddress()) && handshakePacket.getPort() != proxyServer.getPort()) {
@@ -53,8 +52,7 @@ public class StatusRequestPacket implements ClientPacket {
             //write packet
             channel.writeAndFlush(new StatusResponsePacket(gson.toJson(statusResponse)), channel.voidPromise());
 
-            channel.pipeline().get(ClientPacketDecoder.class).setPacketType("STATUS_PING_PACKET");
-            channel.pipeline().get(ClientPacketEncoder.class).setPacketType("STATUS_PING_PACKET");
+            AdvanceProxy.getInstance().getClientPacketManager().setPacketType(channel, "STATUS_PING_PACKET");
 
             channel.writeAndFlush(new StatusPingPacket());
 

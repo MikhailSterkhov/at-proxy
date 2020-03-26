@@ -34,6 +34,8 @@ public interface Server {
 
     void setServerChannel(Channel serverChannel);
 
+    void sendData(String channel, byte[] bytes);
+
     default InetSocketAddress getInetAddress() {
         return new InetSocketAddress(getHostAddress(), getPort());
     }

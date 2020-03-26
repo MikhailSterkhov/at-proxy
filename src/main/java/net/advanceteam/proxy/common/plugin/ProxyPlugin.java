@@ -22,6 +22,10 @@ public abstract class ProxyPlugin {
     @Getter
     private FileConfiguration config;
 
+    @Getter
+    @Setter
+    private boolean enabled;
+
 
     public abstract void onEnable();
 

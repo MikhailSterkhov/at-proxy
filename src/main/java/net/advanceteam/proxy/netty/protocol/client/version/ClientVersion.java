@@ -55,7 +55,8 @@ public enum ClientVersion {
 
     //--1.15--//
     V1_15(573),
-    V1_15_1(575);
+    V1_15_1(575),
+    V1_15_2(578);
 
     private int version; //версия клиента
 

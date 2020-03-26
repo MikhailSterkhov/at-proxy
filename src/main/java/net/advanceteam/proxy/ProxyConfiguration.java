@@ -30,23 +30,9 @@ public class ProxyConfiguration {
     @Getter
     private Map<String, ProxyServer> proxyServerMap;
 
-
     @Getter
-    private FileConfiguration config; {
-        File configFile = new File("config.yml");
+    private FileConfiguration config;
 
-        try {
-
-            if ( !configFile.exists() ) {
-                Files.copy(Objects.requireNonNull(ProxyConfiguration.class.getClassLoader().getResourceAsStream("config.yml")), configFile.toPath() );
-            }
-
-            this.config = AdvanceProxy.getInstance().getConfigManager().load(configFile);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public String getServerHost(String serverName) {
         String serverAddress = config.getString("servers." + serverName);
@@ -93,6 +79,25 @@ public class ProxyConfiguration {
     }
 
     /**
+     * Перезагрузить конфирурацию
+     */
+    public void reload() {
+        File configFile = new File("config.yml");
+
+        try {
+            if ( !configFile.exists() ) {
+                Files.copy(Objects.requireNonNull(ProxyConfiguration.class.getClassLoader().getResourceAsStream("config.yml")), configFile.toPath() );
+            }
+
+            this.config = AdvanceProxy.getInstance().getConfigManager().load(configFile);
+            this.load();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Загрузить сервера из конфига
      */
     private void loadProxyServers() {
@@ -110,7 +115,7 @@ public class ProxyConfiguration {
             String proxyHost = proxiesSection.getString(proxyName + ".host");
             int proxyPort = proxiesSection.getInt(proxyName + ".port");
 
-            ProxyServer proxyServer = new ProxyServer(null, proxyName, proxyHost, proxyPort);
+            ProxyServer proxyServer = new ProxyServer(null, proxyName, proxyHost, proxyPort, false);
             proxyServerMap.put(proxyServer.getName(), proxyServer);
         }
 

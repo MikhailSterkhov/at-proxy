@@ -1,24 +1,23 @@
-package net.advanceteam.proxy.connection.sender;
+package net.advanceteam.proxy.connection.console;
 
 import lombok.Getter;
 import net.advanceteam.proxy.AdvanceProxy;
 import net.advanceteam.proxy.common.chat.ChatMessageType;
-import net.advanceteam.proxy.common.command.CommandSender;
+import net.advanceteam.proxy.common.command.sender.CommandSender;
 import net.advanceteam.proxy.common.command.type.CommandSendingType;
 
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
-public class ConsoleCommandSender implements CommandSender {
-
-    private final Logger logger = AdvanceProxy.getInstance().getLogger();
+public class ConsoleSender implements CommandSender {
 
     private final CommandSendingType commandSendingType = CommandSendingType.CONSOLE;
 
 
     @Override
     public void sendMessage(String message) {
-        logger.info(message);
+        AdvanceProxy.getInstance().getLogger().info(message);
     }
 
     @Override
@@ -40,4 +39,15 @@ public class ConsoleCommandSender implements CommandSender {
     public String getName() {
         return "Console";
     }
+
+    @Override
+    public List<String> getPermissions() {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return true;
+    }
+
 }

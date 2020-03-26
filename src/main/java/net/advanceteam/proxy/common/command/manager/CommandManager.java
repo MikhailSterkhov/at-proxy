@@ -1,19 +1,20 @@
 package net.advanceteam.proxy.common.command.manager;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import lombok.Getter;
 import net.advanceteam.proxy.AdvanceProxy;
 import net.advanceteam.proxy.ProxyConfiguration;
-import net.advanceteam.proxy.common.command.CommandSender;
-import net.advanceteam.proxy.common.command.execution.CommandExecutor;
+import net.advanceteam.proxy.common.command.sender.CommandSender;
+import net.advanceteam.proxy.common.command.CommandExecutor;
+import net.advanceteam.proxy.common.plugin.ProxyPlugin;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
-public class CommandManager {
+public final class CommandManager {
 
     @Getter
-    private final Map<String, CommandExecutor> commandMap = new HashMap<>();
+    private final Table<String, String, CommandExecutor> commandTable = HashBasedTable.create();
 
     /**
      * Выполнить команду от имени отправтеля
@@ -24,12 +25,12 @@ public class CommandManager {
     public boolean dispatchCommand(CommandSender commandSender, String command) {
         String[] commandArg = command.replaceFirst("/", "").split(" ", -1);
 
-        if ( !hasCommand(commandArg[0]) ) {
-            return false;
-        }
-
         CommandExecutor commandExecutor = getCommand(commandArg[0]);
         ProxyConfiguration proxyConfiguration = AdvanceProxy.getInstance().getProxyConfig();
+
+        if (commandExecutor == null) {
+            return false;
+        }
 
         commandExecutor.executeCommand(commandSender, Arrays.copyOfRange(commandArg, 1, commandArg.length));
 
@@ -45,18 +46,18 @@ public class CommandManager {
      *
      * @param commandExecutor - команда
      */
-    public void registerCommand(CommandExecutor commandExecutor) {
-        commandMap.put(commandExecutor.getCommand(), commandExecutor);
-    }
+    public void registerCommand(ProxyPlugin proxyPlugin, CommandExecutor commandExecutor) {
+        String pluginName = proxyPlugin == null ? "AdvanceProxy" : proxyPlugin.getPluginInfo().name();
 
-    /**
-     * Зарегистрировать команду по ее названию
-     *
-     * @param commandName - имя команды
-     * @param commandExecutor - команда
-     */
-    public void registerCommand(String commandName, CommandExecutor commandExecutor) {
-        commandMap.put(commandName, commandExecutor);
+        if (proxyPlugin != null) {
+            commandExecutor.setPlugin(proxyPlugin);
+        }
+
+        commandTable.put(pluginName, commandExecutor.getCommand(), commandExecutor);
+
+        for (String commandAlias : commandExecutor.getAliases()) {
+            commandTable.put(pluginName, commandAlias, commandExecutor);
+        }
     }
 
     /**
@@ -64,7 +65,7 @@ public class CommandManager {
      *
      * @param commandName - имя команды
      */
-    public boolean hasCommand(String commandName) {
+    public boolean commandIsExists(String commandName) {
         return getCommand(commandName) != null;
     }
 
@@ -74,7 +75,17 @@ public class CommandManager {
      * @param commandName - имя команды
      */
     public CommandExecutor getCommand(String commandName) {
-        return commandMap.get(commandName);
+        for (String pluginName : commandTable.rowKeySet()) {
+            CommandExecutor commandExecutor = commandTable.get(pluginName, commandName);
+
+            if (commandExecutor == null) {
+                continue;
+            }
+
+            return commandExecutor;
+        }
+
+        return null;
     }
 
 }

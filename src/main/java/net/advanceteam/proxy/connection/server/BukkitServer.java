@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.advanceteam.proxy.connection.player.Player;
 import net.advanceteam.proxy.connection.server.impl.Server;
+import net.advanceteam.proxy.netty.protocol.client.packet.game.PluginMessagePacket;
 
 import java.util.List;
 
@@ -30,9 +31,14 @@ public class BukkitServer implements Server {
     private final List<Player> onlinePlayers;
     private final List<String> worldNames;
 
+
     @Override
     public String toString() {
         return getInetAddress() + "(" + name + ")";
     }
 
+    @Override
+    public void sendData(String channel, byte[] bytes) {
+        serverChannel.writeAndFlush(new PluginMessagePacket(channel, bytes, false));
+    }
 }

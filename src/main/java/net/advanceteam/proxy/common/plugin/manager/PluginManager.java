@@ -16,16 +16,15 @@ import java.util.logging.Logger;
 
 public final class PluginManager {
 
-    private final Map<String, ProxyPlugin> plugins = new HashMap<>();
+    private final Map<String, ProxyPlugin> pluginMap = new HashMap<>();
 
 
     /**
      * Загрузить все плагины из дериктории
      *
-     * @param directoryName - название директориии
      */
-    public void loadPlugins(@NonNull String directoryName) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException {
-        File directory = new File(directoryName);
+    public void loadPlugins() throws Exception {
+        File directory = AdvanceProxy.getInstance().getPluginsFolder();
         Logger logger = AdvanceProxy.getInstance().getLogger();
 
         if (directory.exists() && directory.isDirectory()) {
@@ -44,38 +43,71 @@ public final class PluginManager {
                     String className = jarEntry.getName().substring(0, jarEntry.getName().length() - 6);
                     className = className.replace('/', '.');
 
-                    if (className.contains(file.getName().replace(".jar", ""))) {
-
-                        URLClassLoader urlClassLoader = new URLClassLoader(new URL[]
-                                {file.toURI().toURL()});
-
-                        Class<?> pluginClass = urlClassLoader.loadClass(className);
-
-                        ProxyPlugin proxyPlugin = (ProxyPlugin) pluginClass.newInstance();
-
-                        PluginHandler pluginInfo = proxyPlugin.getClass().getDeclaredAnnotation(PluginHandler.class);
-
-                        logger.info(String.format("[PluginManager] Loading %s version %s by %s",
-                                pluginInfo.name(),
-                                pluginInfo.version(),
-                                pluginInfo.author()));
-
-                        proxyPlugin.onLoad();
-
-                        logger.info(String.format("[PluginManager] Running %s version %s by %s",
-                                pluginInfo.name(), pluginInfo.version(), pluginInfo.author()));
-
-                        proxyPlugin.onEnable();
-
-                        addPlugin(pluginInfo.name(), proxyPlugin);
-                        proxyPlugin.setPluginInfo(pluginInfo);
+                    if (!className.contains(file.getName().replace(".jar", ""))) {
+                        continue;
                     }
+
+                    URLClassLoader urlClassLoader = new URLClassLoader(new URL[]
+                            {file.toURI().toURL()});
+
+                    Class<?> pluginClass = urlClassLoader.loadClass(className);
+
+                    ProxyPlugin proxyPlugin = (ProxyPlugin) pluginClass.newInstance();
+
+                    PluginHandler pluginInfo = proxyPlugin.getClass().getDeclaredAnnotation(PluginHandler.class);
+
+                    logger.info(String.format("[PluginManager] Loading %s version %s by %s",
+                            pluginInfo.name(),
+                            pluginInfo.version(),
+                            pluginInfo.author()));
+
+                    proxyPlugin.onLoad();
+
+                    logger.info(String.format("[PluginManager] Running %s version %s by %s",
+                            pluginInfo.name(), pluginInfo.version(), pluginInfo.author()));
+
+                    proxyPlugin.setEnabled(true);
+                    proxyPlugin.onEnable();
+
+                    addPlugin(pluginInfo.name(), proxyPlugin);
+                    proxyPlugin.setPluginInfo(pluginInfo);
+
+                    pluginMap.put(pluginInfo.name().toLowerCase(), proxyPlugin);
                 }
             }
         }
 
-        logger.info(String.format("[PluginManager] Bungee detected {%s}", plugins.size()) + " active plugins");
+        logger.info(String.format("[PluginManager] Bungee detected {%s}", pluginMap.size()) + " active plugins");
+    }
 
+    /**
+     * Выключить плагин
+     *
+     * @param proxyPlugin - плагин
+     */
+    public void disablePlugin(ProxyPlugin proxyPlugin) {
+        if (!proxyPlugin.isEnabled()) {
+            return;
+        }
+
+        proxyPlugin.setEnabled(false);
+        proxyPlugin.onDisable();
+
+        AdvanceProxy.getInstance().getEventManager().unregisterListeners(proxyPlugin);
+    }
+
+    /**
+     * Перезагрузить все плагины
+     */
+    public void reloadPlugins() {
+        try {
+            getPlugins().forEach(this::disablePlugin);
+
+            loadPlugins();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -85,7 +117,7 @@ public final class PluginManager {
      * @param proxyPlugin - плагин
      */
     private void addPlugin(@NonNull String name, @NonNull ProxyPlugin proxyPlugin) {
-        plugins.put(name, proxyPlugin);
+        pluginMap.put(name, proxyPlugin);
     }
 
     /**
@@ -94,14 +126,14 @@ public final class PluginManager {
      * @param name - имя
      */
     public ProxyPlugin getPlugin(String name) {
-        return plugins.get(name);
+        return pluginMap.get(name.toLowerCase());
     }
 
     /**
      * Получить список плагинов
      */
     public List<ProxyPlugin> getPlugins() {
-        return Collections.unmodifiableList(new ArrayList<>( plugins.values() ));
+        return Collections.unmodifiableList(new ArrayList<>( pluginMap.values() ));
     }
 
     /**
@@ -110,7 +142,7 @@ public final class PluginManager {
     public List<String> getPluginNames() {
         List<String> pluginsName = new ArrayList<>();
 
-        for (ProxyPlugin proxyPlugin : plugins.values()) {
+        for (ProxyPlugin proxyPlugin : pluginMap.values()) {
             pluginsName.add(proxyPlugin.getPluginInfo().name());
         }
 

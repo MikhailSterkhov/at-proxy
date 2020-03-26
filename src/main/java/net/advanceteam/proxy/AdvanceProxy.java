@@ -1,5 +1,8 @@
 package net.advanceteam.proxy;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,20 +11,23 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import jline.console.ConsoleReader;
 import lombok.Getter;
+import lombok.Setter;
 import net.advanceteam.proxy.common.chat.ChatColor;
 import net.advanceteam.proxy.common.chat.component.BaseComponent;
 import net.advanceteam.proxy.common.chat.component.KeybindComponent;
 import net.advanceteam.proxy.common.chat.component.SelectorComponent;
 import net.advanceteam.proxy.common.chat.component.TranslatableComponent;
 import net.advanceteam.proxy.common.chat.serializer.*;
-import net.advanceteam.proxy.common.command.impl.PluginsCommand;
+import net.advanceteam.proxy.common.command.impl.*;
 import net.advanceteam.proxy.common.command.manager.CommandManager;
 import net.advanceteam.proxy.common.config.ConfigurationManager;
+import net.advanceteam.proxy.common.event.impl.ProxyReloadEvent;
 import net.advanceteam.proxy.common.event.manager.EventManager;
 import net.advanceteam.proxy.common.logger.BungeeLogger;
 import net.advanceteam.proxy.common.mail.MailManager;
 import net.advanceteam.proxy.common.ping.icon.Favicon;
 import net.advanceteam.proxy.common.plugin.manager.PluginManager;
+import net.advanceteam.proxy.common.scheduler.ProxyScheduler;
 import net.advanceteam.proxy.common.scheduler.SchedulerManager;
 import net.advanceteam.proxy.connection.server.impl.Server;
 import net.advanceteam.proxy.connection.server.ProxyServer;
@@ -31,11 +37,12 @@ import net.advanceteam.proxy.connection.player.Player;
 import net.advanceteam.proxy.netty.protocol.client.manager.ClientPacketManager;
 import net.advanceteam.proxy.netty.protocol.client.packet.game.*;
 import net.advanceteam.proxy.netty.protocol.client.packet.handshake.HandshakePacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.login.LoginRequestPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.login.LoginSuccessPacket;
+import net.advanceteam.proxy.netty.protocol.client.packet.game.LoginPacket;
+import net.advanceteam.proxy.netty.protocol.client.packet.login.*;
 import net.advanceteam.proxy.netty.protocol.client.packet.status.StatusPingPacket;
 import net.advanceteam.proxy.netty.protocol.client.packet.status.StatusRequestPacket;
 import net.advanceteam.proxy.netty.protocol.client.packet.status.StatusResponsePacket;
+import net.advanceteam.proxy.netty.protocol.client.version.ClientVersion;
 import net.advanceteam.proxy.netty.system.BootstrapStarter;
 
 import javax.swing.*;
@@ -44,10 +51,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public final class AdvanceProxy {
 
@@ -61,10 +70,16 @@ public final class AdvanceProxy {
     private final SchedulerManager schedulerManager = new SchedulerManager();
 
     @Getter
+    private final BootstrapStarter bootstrapStarter = new BootstrapStarter();
+
+    @Getter
     private final CommandManager commandManager = new CommandManager();
 
     @Getter
     private final PluginManager pluginManager = new PluginManager();
+
+    @Getter
+    private final ConsoleReader consoleReader = new ConsoleReader();
 
     @Getter
     private final ServerManager serverManager = new ServerManager();
@@ -73,16 +88,16 @@ public final class AdvanceProxy {
     private final PlayerManager playerManager = new PlayerManager();
 
     @Getter
-    private final ConsoleReader consoleReader = new ConsoleReader();
-
-    @Getter
     private final EventManager eventManager = new EventManager();
 
     @Getter
     private final MailManager mailManager = new MailManager();
 
     @Getter
-    private final File pluginsFolder = new File("plugins");
+    private final Collection<String> pluginChannels = new HashSet<>();
+
+    @Getter
+    private final Logger logger = new BungeeLogger(consoleReader);
 
     @Getter
     private final Gson gson = new GsonBuilder()
@@ -100,13 +115,14 @@ public final class AdvanceProxy {
             .build());
 
     @Getter
-    private final Logger logger = new BungeeLogger(consoleReader);
+    private final File pluginsFolder = new File("plugins");
 
     @Getter
     private final ProxyConfiguration proxyConfig;
 
     @Getter
-    private final BootstrapStarter bootstrapStarter = new BootstrapStarter();
+    @Setter
+    private String proxyHost;
 
 
 // ============================================= INSTANCE ========================================================== //
@@ -114,7 +130,7 @@ public final class AdvanceProxy {
     @Getter
     private static AdvanceProxy instance;
 
-    AdvanceProxy() throws IOException {
+    public AdvanceProxy() throws IOException {
         instance = this;
 
         this.pluginsFolder.mkdir();
@@ -127,16 +143,10 @@ public final class AdvanceProxy {
     /**
      * Запуск AdvanceProxy ! !!! !!!! !!!!!!  !!! ! ! !!!  !!! !!! !!!! : )):):). :( не запустится отвечаю :(:(:(:(
      */
-    public void start(long startMills) {
-        try {
-            //Загрузка плагинов.
-            pluginManager.loadPlugins("plugins");
-        } catch (IOException | ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
+    public void start(long startMills) throws Exception {
+        pluginManager.loadPlugins();
 
         // ========= // Регистрация пакетов. // ========= //
-        //handshake
         new HandshakePacket();
 
         //status
@@ -145,44 +155,107 @@ public final class AdvanceProxy {
         new StatusPingPacket();
 
         //login
+        new EncryptionRequestPacket();
+        new EncryptionResponsePacket();
         new LoginRequestPacket();
         new LoginSuccessPacket();
+        new SetCompressionPacket();
 
         //game
         new ChatPacket();
         new DisconnectPacket();
+        new LoginPacket();
         new PlayerListHeaderFooterPacket();
-        new PluginMessagePacket();
+        new PluginMessagePacket("client");
+        new PluginMessagePacket("server");
         new TitlePacket();
         // ========= // Регистрация пакетов. // ========= //
 
         //Регистрация команд.
-        commandManager.registerCommand(new PluginsCommand());
+        commandManager.registerCommand(null, new PluginsCommand());
+        commandManager.registerCommand(null, new ReloadCommand());
+        commandManager.registerCommand(null, new StopCommand());
+        commandManager.registerCommand(null, new ClearConsoleCommand());
+        commandManager.registerCommand(null, new HelpCommand());
 
         //Загрузка конфигурации Bungee.
-        proxyConfig.load();
+        proxyConfig.reload();
 
         //Бинд серверов.
-        this.bindServers(startMills);
+        bindProxies();
+
+        new ProxyScheduler("proxy-servers-bind-312") {
+
+            @Override
+            public void run() {
+                bindServers();
+            }
+
+        }.runTimer(0, 5, TimeUnit.SECONDS);
+
+        //log about completed start
+        logger.info("");
+        logger.info(String.format("%sDone(%sms): AdvanceProxy has been started!", ChatColor.GREEN, System.currentTimeMillis() - startMills));
+        logger.info(ChatColor.GREEN + "Type \"/ghelp\" to show a Proxy commands.");
     }
 
-    private void bindServers(long startMills) {
-        // ping proxy server
+    /**
+     * Перезагрузить Proxy
+     */
+    public void reload() {
+        ProxyReloadEvent proxyReloadEvent = new ProxyReloadEvent();
+        eventManager.callEvent(proxyReloadEvent);
+
+        if (proxyReloadEvent.isCancelled()) {
+            return;
+        }
+
+        proxyConfig.reload();
+        pluginManager.reloadPlugins();
+
+        AdvanceProxy.getInstance().getLogger().log(Level.INFO, "§eAdvanceProxy has been reloaded. Thanks for using!");
+    }
+
+    public void shutdown() {
+        eventManager.getRegisteredEventMethods().clear();
+        eventManager.getRegisteredListeners().clear();
+
+        commandManager.getCommandTable().clear();
+
+        pluginManager.getPlugins().forEach(pluginManager::disablePlugin);
+
+        AdvanceProxy.getInstance().getLogger().log(Level.INFO, "§aAdvanceProxy is closed. Thanks for using!");
+
+        consoleReader.close();
+        System.exit(0);
+    }
+
+    private void bindProxies() {
         for (ProxyServer proxyServer : proxyConfig.getProxyServerMap().values()) {
             bootstrapStarter.bindServer(proxyServer.getInetAddress(), future -> {
 
                 proxyServer.setServerChannel( future.channel() );
 
-                if (!future.isSuccess()) {
-                    logger.info( String.format("[Proxy] %s failed to handle bind", proxyServer) );
+                if (future.isSuccess()) {
+                    if (!proxyServer.isConnected()) {
+                        logger.info(String.format("[Proxy] %s successfully handled bind", proxyServer));
+
+                        proxyServer.setConnected(true);
+                    }
+
                     return;
                 }
 
-                logger.info( String.format("[Proxy] %s successfully handled bind", proxyServer) );
+                if (proxyServer.isConnected()) {
+                    logger.info(String.format("[Proxy] %s failed to handle bind", proxyServer));
 
+                    proxyServer.setConnected(false);
+                }
             });
         }
+    }
 
+    private void bindServers() {
         // ping bukkit servers
         proxyConfig.getBukkitServerMap().values().forEach(server -> {
             ChannelFutureListener channelFutureListener = future -> {
@@ -190,19 +263,21 @@ public final class AdvanceProxy {
                 // init server channel
                 server.setServerChannel( future.channel() );
 
-                if ( future.isSuccess() ) {
-                    AdvanceProxy.getInstance().getServerManager().connectServer(server);
+                if (future.isSuccess()) {
+                    if (!serverManager.hasServer(server)) {
+                        serverManager.connectServer(server);
+                    }
+
                     return;
                 }
 
-                //TODO: Connect to server with connector
+                if (serverManager.hasServer(server)) {
+                    serverManager.disconnectServer(server.getName());
+                }
             };
 
             bootstrapStarter.connectServer(eventLoops, server.getInetAddress(), channelFutureListener);
         });
-
-        logger.info("");
-        logger.info(String.format("%sDone(%sms): AdvanceProxy has been started!", ChatColor.GREEN, System.currentTimeMillis() - startMills));
     }
 
     /**
@@ -210,20 +285,44 @@ public final class AdvanceProxy {
      */
     public Favicon getServerFavicon() {
         try {
-
             File faviconFile = new File("server-icon.png");
+
             if ( !faviconFile.exists() ) {
                 return null;
             }
 
-            Image imageIcon = new ImageIcon(faviconFile.toURL()).getImage();
-            return Favicon.create((BufferedImage) imageIcon);
+            Image image = new ImageIcon(faviconFile.toURL()).getImage();
+            BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+            Graphics2D graphics2D = bufferedImage.createGraphics();
+            graphics2D.drawImage(image, 0, 0, null);
+            graphics2D.dispose();
+
+            return Favicon.create(bufferedImage);
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
 
         return null;
+    }
+
+    /**
+     * Зарегистрировать передачу каналов между
+     * серверами
+     *
+     * @param protocolVersion - версия клиента
+     */
+    public PluginMessagePacket registerChannels(int protocolVersion) {
+        if ( protocolVersion >= ClientVersion.V1_13.getVersion() ) {
+
+            return new PluginMessagePacket("minecraft:register", Joiner.on("\00").join(
+                    pluginChannels.stream().map(PluginMessagePacket.MODERNISE).collect(Collectors.toList())
+
+            ).getBytes( Charsets.UTF_8 ), false );
+        }
+
+        return new PluginMessagePacket("REGISTER", Joiner.on("\00").join(pluginChannels).getBytes( Charsets.UTF_8 ), false);
     }
 
     /**

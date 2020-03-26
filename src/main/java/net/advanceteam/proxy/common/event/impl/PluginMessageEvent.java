@@ -4,6 +4,7 @@ import lombok.*;
 import net.advanceteam.proxy.common.event.ProxyEvent;
 import net.advanceteam.proxy.common.event.cancel.Cancellable;
 import net.advanceteam.proxy.connection.player.Player;
+import net.advanceteam.proxy.connection.server.impl.Server;
 
 @RequiredArgsConstructor
 @Getter
@@ -12,7 +13,8 @@ public class PluginMessageEvent extends ProxyEvent implements Cancellable {
 
     private boolean cancelled;
 
-    private final Player player, receiver;
+    private final Server server;
+    private final Player player;
 
     private final String tag;
     private final byte[] data;

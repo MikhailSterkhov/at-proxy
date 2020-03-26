@@ -1,9 +1,12 @@
 package net.advanceteam.proxy.common.event.manager;
 
 import lombok.Getter;
+import net.advanceteam.proxy.AdvanceProxy;
 import net.advanceteam.proxy.common.event.ProxyEvent;
 import net.advanceteam.proxy.common.event.Listener;
 import net.advanceteam.proxy.common.event.annotation.EventHandler;
+import net.advanceteam.proxy.common.plugin.ProxyPlugin;
+import net.advanceteam.proxy.common.plugin.manager.PluginManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,7 +19,7 @@ import java.util.Map;
 public final class EventManager {
 
     private final Map<String, List<Method>> registeredEventMethods = new HashMap<>();
-    private final List<Listener> registeredListeners = new ArrayList<>();
+    private final Map<String, List<Listener>> registeredListeners = new HashMap<>();
 
 
     /**
@@ -24,10 +27,26 @@ public final class EventManager {
      *
      * @param listener - листенер
      */
-    public void registerListener(Listener listener) {
-        registeredListeners.add(listener);
+    public void registerListener(ProxyPlugin proxyPlugin, Listener listener) {
+        String pluginName = proxyPlugin == null ? "AdvanceProxy" : proxyPlugin.getPluginInfo().name();
+
+        List<Listener> listenerList = registeredListeners.computeIfAbsent(pluginName, f -> new ArrayList<>());
+        listenerList.add(listener);
+
+        registeredListeners.put(pluginName, listenerList);
 
         registerEvents(listener);
+    }
+
+    /**
+     * Разрегистрировать листенеры
+     *
+     * @param proxyPlugin - плагин, от имени которого зарегистрированы листенеры
+     */
+    public void unregisterListeners(ProxyPlugin proxyPlugin) {
+        String pluginName = proxyPlugin == null ? "AdvanceProxy" : proxyPlugin.getPluginInfo().name();
+
+        registeredListeners.remove(pluginName);
     }
 
     /**
@@ -74,12 +93,21 @@ public final class EventManager {
         }
 
         for (Method method : methodList) {
-            for (Listener listener : registeredListeners) {
-                try {
-                    method.invoke(listener, proxyEvent);
-                   } catch (IllegalAccessException | InvocationTargetException ignored) {
+            registeredListeners.forEach((pluginName, listenerList) -> {
+                PluginManager pluginManager = AdvanceProxy.getInstance().getPluginManager();
+                ProxyPlugin proxyPlugin = pluginManager.getPlugin(pluginName);
+
+                if (proxyPlugin != null && !proxyPlugin.isEnabled()) {
+                    return;
                 }
-            }
+
+                for (Listener listener : listenerList) {
+                    try {
+                        method.invoke(listener, proxyEvent);
+                    } catch (IllegalAccessException | InvocationTargetException ignored) {
+                    }
+                }
+            });
         }
     }
 

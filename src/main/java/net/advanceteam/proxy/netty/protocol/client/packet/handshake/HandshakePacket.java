@@ -60,26 +60,22 @@ public class HandshakePacket implements ClientPacket {
         clientPacketEncoder.setClientVersion(clientVersion);
 
         //update last handshake
-        clientPacketDecoder.setLastHandshakePacket(this);
-
-        //update address
-        for (ProxyServer proxyServer : AdvanceProxy.getInstance().getProxies()) {
-            proxyServer.setHostAddress(host);
-        }
+        clientPacketDecoder.setLastHandshake(this);
 
         //check request
         switch (voidRequest) {
             case 1: {
-                clientPacketDecoder.setPacketType("STATUS_REQUEST_PACKET");
-                clientPacketEncoder.setPacketType("STATUS_REQUEST_PACKET");
+                for (ProxyServer proxyServer : AdvanceProxy.getInstance().getProxies()) {
+                    proxyServer.setHostAddress(host);
+                }
 
+                AdvanceProxy.getInstance().setProxyHost(host);
+                AdvanceProxy.getInstance().getClientPacketManager().setPacketType(channel, "STATUS_REQUEST_PACKET");
                 break;
             }
 
             case 2: {
-                clientPacketDecoder.setPacketType("LOGIN_REQUEST_PACKET");
-                clientPacketEncoder.setPacketType("LOGIN_REQUEST_PACKET");
-
+                AdvanceProxy.getInstance().getClientPacketManager().setPacketType(channel, "LOGIN");
                 break;
             }
         }

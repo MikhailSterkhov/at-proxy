@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class PlayerManager {
+public final class PlayerManager {
 
     @Getter
     private final Map<String, Player> playerMap = new HashMap<>();

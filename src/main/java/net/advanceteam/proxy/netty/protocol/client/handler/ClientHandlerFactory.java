@@ -11,4 +11,7 @@ public class ClientHandlerFactory extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext channelHandlerContext) { }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable cause) { }
+
 }

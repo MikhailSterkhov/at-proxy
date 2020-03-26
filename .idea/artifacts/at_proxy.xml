@@ -1,0 +1,31 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="at-proxy">
+    <output-path>$USER_HOME$/Desktop/AT Bungee</output-path>
+    <root id="archive" name="at-proxy.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="at-proxy" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/activation-1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/animal-sniffer-annotations-1.17.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/checker-qual-2.5.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/commons-io-2.6.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/commons-lang3-3.9.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/error_prone_annotations-2.2.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/failureaccess-1.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/gson-2.8.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/guava-27.0-jre.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/j2objc-annotations-1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/jline-2.14.6.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/jsr305-3.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/lombok-1.18.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/mail-1.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/mysql-connector-java-5.1.47.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/netty-all-4.1.44.Final.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/snakeyaml-1.23.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/trove-1.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/target/lib/trove4j-3.0.3.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

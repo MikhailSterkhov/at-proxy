@@ -10,7 +10,7 @@ import net.advanceteam.proxy.common.chat.ChatMessageType;
 import net.advanceteam.proxy.common.chat.component.BaseComponent;
 import net.advanceteam.proxy.common.chat.component.TextComponent;
 import net.advanceteam.proxy.common.chat.serializer.ComponentSerializer;
-import net.advanceteam.proxy.common.command.CommandSender;
+import net.advanceteam.proxy.common.command.sender.CommandSender;
 import net.advanceteam.proxy.common.command.type.CommandSendingType;
 import net.advanceteam.proxy.common.event.impl.ServerConnectEvent;
 import net.advanceteam.proxy.connection.server.impl.Server;
@@ -69,7 +69,7 @@ public class Player implements CommandSender {
      * @param serverName - имя сервера
      */
     public void connect(String serverName) {
-        connect( AdvanceProxy.getInstance().getServer(serverName) );
+        connect(AdvanceProxy.getInstance().getServer(serverName));
     }
 
     /**
@@ -145,6 +145,11 @@ public class Player implements CommandSender {
             return;
         }
 
+        if (target == null) {
+            sendMessage("§cНевозможно подключиться к серверу: java.lang.NullPointerException");
+            return;
+        }
+
         this.server = target;
 
         AdvanceProxy.getInstance().getBootstrapStarter().connectServer(channel.eventLoop(), target.getInetAddress(), future -> {
@@ -154,18 +159,13 @@ public class Player implements CommandSender {
             }
 
             if ( !future.isSuccess() ) {
-                future.channel().close();
-
-                if ( !connected ) {
-                    disconnect("§cГлавный Proxy сервер недоступен: " + future.cause().getCause());
-                    return;
-                }
-
                 sendMessage("§cОтключено, невозможно подключиться к серверу!");
+
+                future.channel().close();
                 return;
             }
 
-            sendPacket(new HandshakePacket(minecraftVersion.getVersion(), lastHandshake.getHost(), lastHandshake.getPort(), 2));
+            sendPacket(lastHandshake);
             sendPacket(new LoginRequestPacket(name));
 
             this.connected = true;
@@ -190,7 +190,7 @@ public class Player implements CommandSender {
      */
     public void disconnect(BaseComponent... reason) {
         AdvanceProxy.getInstance().getPlayerManager().disconnectPlayer(name);
-
+        
         sendPacket( new DisconnectPacket(ComponentSerializer.toString(reason)) );
 
         this.channel.close();

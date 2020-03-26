@@ -15,7 +15,7 @@ import net.advanceteam.proxy.netty.protocol.client.handler.ClientHandlerFactory;
 
 import java.net.InetSocketAddress;
 
-public class BootstrapStarter {
+public final class BootstrapStarter {
 
 
     /**

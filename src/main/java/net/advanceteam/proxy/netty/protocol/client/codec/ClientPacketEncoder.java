@@ -15,11 +15,11 @@ public class ClientPacketEncoder extends MessageToByteEncoder<ClientPacket> {
 
     @Setter
     @Getter
-    private String packetType = "HANDSHAKE_PACKET";
+    private ClientVersion clientVersion = ClientVersion.V1_15_1;
 
     @Setter
     @Getter
-    private ClientVersion clientVersion = ClientVersion.V1_15_1;
+    private String packetType = "HANDSHAKE_PACKET";
 
 
     /**
@@ -34,7 +34,13 @@ public class ClientPacketEncoder extends MessageToByteEncoder<ClientPacket> {
         ChannelPacketBuffer channelPacketBuffer = new ChannelPacketBuffer(byteBuf);
         ClientPacketManager packetManager = AdvanceProxy.getInstance().getClientPacketManager();
 
-        channelPacketBuffer.writeVarInt( packetManager.getPacketId(clientPacket.getClass(), clientVersion.getVersion()) );
+        int packetId = packetManager.getPacketId(clientPacket.getClass(), clientVersion.getVersion());
+
+        if (AdvanceProxy.getInstance().getProxyConfig().getProxySettings().isLogWritePacket()) {
+            AdvanceProxy.getInstance().getLogger().info("Writing packet @" + clientPacket.getClass().getSimpleName() + "(" + packetId + ")");
+        }
+
+        channelPacketBuffer.writeVarInt( packetId );
         clientPacket.writePacket(channelPacketBuffer, clientVersion.getVersion());
     }
 }

@@ -1,13 +1,17 @@
 package net.advanceteam.proxy.common.event.impl;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import net.advanceteam.proxy.common.command.CommandSender;
 import net.advanceteam.proxy.common.event.ProxyEvent;
+import net.advanceteam.proxy.common.event.cancel.Cancellable;
 
 @Getter
-@RequiredArgsConstructor
-public class ProxyReloadEvent extends ProxyEvent {
+public class ProxyReloadEvent extends ProxyEvent implements Cancellable {
 
-    private final CommandSender sender;
+    private boolean cancelled = false;
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancelled = cancel;
+    }
+
 }

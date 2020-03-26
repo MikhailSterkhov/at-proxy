@@ -4,9 +4,11 @@ import io.netty.channel.Channel;
 import lombok.AllArgsConstructor;
 import net.advanceteam.proxy.netty.protocol.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.client.ClientPacket;
+import net.advanceteam.proxy.netty.protocol.client.annotation.ClientPacketHandler;
 import net.advanceteam.proxy.netty.protocol.client.version.ClientVersion;
 
 @AllArgsConstructor
+@ClientPacketHandler(packetQuery = "GAME")
 public class DisconnectPacket implements ClientPacket {
 
     private String reason;
@@ -28,6 +30,8 @@ public class DisconnectPacket implements ClientPacket {
     }
 
     @Override
-    public void handle(Channel channel) { }
+    public void handle(Channel channel) {
+        System.out.println("disconnect packet handle: " + reason);
+    }
 
 }

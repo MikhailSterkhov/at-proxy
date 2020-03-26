@@ -1,7 +1,7 @@
 package net.advanceteam.proxy.common.event.impl;
 
 import lombok.*;
-import net.advanceteam.proxy.common.command.CommandSender;
+import net.advanceteam.proxy.common.command.sender.CommandSender;
 import net.advanceteam.proxy.common.event.ProxyEvent;
 
 /**
