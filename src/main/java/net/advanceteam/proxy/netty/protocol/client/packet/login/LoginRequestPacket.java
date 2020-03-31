@@ -10,7 +10,7 @@ import net.advanceteam.proxy.common.chat.serializer.ComponentSerializer;
 import net.advanceteam.proxy.common.event.impl.ProxyFullKickEvent;
 import net.advanceteam.proxy.common.utility.EncryptionUtil;
 import net.advanceteam.proxy.connection.player.Player;
-import net.advanceteam.proxy.connection.server.impl.Server;
+import net.advanceteam.proxy.connection.server.Server;
 import net.advanceteam.proxy.netty.protocol.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.client.ClientPacket;
 import net.advanceteam.proxy.netty.protocol.client.annotation.ClientPacketHandler;

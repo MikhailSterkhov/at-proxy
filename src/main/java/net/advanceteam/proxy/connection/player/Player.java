@@ -13,7 +13,7 @@ import net.advanceteam.proxy.common.chat.serializer.ComponentSerializer;
 import net.advanceteam.proxy.common.command.sender.CommandSender;
 import net.advanceteam.proxy.common.command.type.CommandSendingType;
 import net.advanceteam.proxy.common.event.impl.ServerConnectEvent;
-import net.advanceteam.proxy.connection.server.impl.Server;
+import net.advanceteam.proxy.connection.server.Server;
 import net.advanceteam.proxy.connection.server.request.ServerConnectRequest;
 import net.advanceteam.proxy.netty.protocol.client.ClientPacket;
 import net.advanceteam.proxy.netty.protocol.client.packet.game.ChatPacket;

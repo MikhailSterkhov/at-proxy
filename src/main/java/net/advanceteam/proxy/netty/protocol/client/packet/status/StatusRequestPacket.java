@@ -6,7 +6,7 @@ import net.advanceteam.proxy.AdvanceProxy;
 import net.advanceteam.proxy.common.event.impl.ProxyPingEvent;
 import net.advanceteam.proxy.common.ping.StatusResponseCallback;
 import net.advanceteam.proxy.common.ping.icon.Favicon;
-import net.advanceteam.proxy.connection.server.ProxyServer;
+import net.advanceteam.proxy.connection.server.impl.ProxyServer;
 import net.advanceteam.proxy.netty.protocol.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.client.ClientPacket;
 import net.advanceteam.proxy.netty.protocol.client.annotation.ClientPacketHandler;
@@ -54,7 +54,7 @@ public class StatusRequestPacket implements ClientPacket {
 
             AdvanceProxy.getInstance().getClientPacketManager().setPacketType(channel, "STATUS_PING_PACKET");
 
-            channel.writeAndFlush(new StatusPingPacket());
+            //channel.writeAndFlush(new StatusPingPacket());
 
             //event
             AdvanceProxy.getInstance().getEventManager().callEvent(new ProxyPingEvent(channel, statusResponse));

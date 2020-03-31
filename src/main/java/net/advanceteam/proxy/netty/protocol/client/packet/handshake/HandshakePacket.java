@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.advanceteam.proxy.AdvanceProxy;
-import net.advanceteam.proxy.connection.server.ProxyServer;
+import net.advanceteam.proxy.connection.server.impl.ProxyServer;
 import net.advanceteam.proxy.netty.protocol.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.client.ClientPacket;
 import net.advanceteam.proxy.netty.protocol.client.annotation.ClientPacketHandler;

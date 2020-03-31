@@ -6,10 +6,10 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 public class ClientHandlerFactory extends ChannelInboundHandlerAdapter {
 
     @Override
-    public void channelActive(ChannelHandlerContext channelHandlerContext) { }
+    public void channelActive(ChannelHandlerContext handlerContext) { }
 
     @Override
-    public void channelInactive(ChannelHandlerContext channelHandlerContext) { }
+    public void channelInactive(ChannelHandlerContext handlerContext) { }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable cause) { }

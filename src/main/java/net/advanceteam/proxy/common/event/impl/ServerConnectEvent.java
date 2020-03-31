@@ -5,7 +5,7 @@ import lombok.Setter;
 import net.advanceteam.proxy.common.event.ProxyEvent;
 import net.advanceteam.proxy.common.event.cancel.Cancellable;
 import net.advanceteam.proxy.connection.player.Player;
-import net.advanceteam.proxy.connection.server.impl.Server;
+import net.advanceteam.proxy.connection.server.Server;
 
 @Getter
 @Setter

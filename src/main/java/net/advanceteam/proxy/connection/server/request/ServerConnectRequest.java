@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import net.advanceteam.proxy.common.callback.Callback;
 import net.advanceteam.proxy.common.event.impl.ServerConnectEvent;
-import net.advanceteam.proxy.connection.server.impl.Server;
+import net.advanceteam.proxy.connection.server.Server;
 
 import java.net.InetSocketAddress;
 

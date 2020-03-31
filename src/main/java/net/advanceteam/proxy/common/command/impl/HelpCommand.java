@@ -25,7 +25,7 @@ public class HelpCommand extends CommandExecutor {
         commandSender.sendMessage("§r");
         commandSender.sendMessage(" §fКонтакты разработчиков:");
         commandSender.sendMessage("  §6* §fItzStonlex (Миша Лейн): §ehttps://vk.com/itzstonlex");
-        commandSender.sendMessage("  §6* §fGitCoder (Сергей Юрченко): §ehttps://vk.com/james_the");
+        commandSender.sendMessage("  §6* §fGitCoder (Сергей Юрченко): §ehttps://vk.com/gitcoder");
     }
 
 }

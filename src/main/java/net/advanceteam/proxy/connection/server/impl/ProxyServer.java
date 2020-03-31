@@ -1,17 +1,15 @@
-package net.advanceteam.proxy.connection.server;
+package net.advanceteam.proxy.connection.server.impl;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.advanceteam.proxy.AdvanceProxy;
 import net.advanceteam.proxy.common.chat.ChatColor;
 import net.advanceteam.proxy.connection.player.Player;
-import net.advanceteam.proxy.connection.server.impl.Server;
-import sun.plugin2.message.PluginMessage;
+import net.advanceteam.proxy.connection.server.Server;
 
 import java.util.ArrayList;
 import java.util.List;

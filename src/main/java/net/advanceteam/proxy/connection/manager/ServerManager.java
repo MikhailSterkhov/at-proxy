@@ -2,7 +2,7 @@ package net.advanceteam.proxy.connection.manager;
 
 import lombok.Getter;
 import net.advanceteam.proxy.AdvanceProxy;
-import net.advanceteam.proxy.connection.server.impl.Server;
+import net.advanceteam.proxy.connection.server.Server;
 
 import java.util.HashMap;
 import java.util.Map;

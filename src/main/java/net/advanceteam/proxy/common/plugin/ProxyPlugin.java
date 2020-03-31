@@ -42,6 +42,10 @@ public abstract class ProxyPlugin {
         return getClass().getClassLoader().getResourceAsStream(resourceName);
     }
 
+    public File getDataFolder() {
+        return new File(AdvanceProxy.getInstance().getPluginsFolder(), pluginInfo.name());
+    }
+
     public void saveDefaultConfig() {
         saveResource("config.yml");
 
@@ -50,13 +54,11 @@ public abstract class ProxyPlugin {
 
     public void saveResource(String resourceName) {
         try {
-            File pluginsFolder = AdvanceProxy.getInstance().getPluginsFolder();
-
-            if (!pluginsFolder.exists()) {
-                pluginsFolder.mkdir();
+            if (!getDataFolder().exists()) {
+                getDataFolder().mkdir();
             }
 
-            Path configPath = pluginsFolder.toPath().resolve(resourceName);
+            Path configPath = getDataFolder().toPath().resolve(resourceName);
 
             if (Files.exists(configPath)) {
                 return;

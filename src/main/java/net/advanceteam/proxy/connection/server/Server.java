@@ -1,4 +1,4 @@
-package net.advanceteam.proxy.connection.server.impl;
+package net.advanceteam.proxy.connection.server;
 
 import io.netty.channel.Channel;
 import net.advanceteam.proxy.connection.player.Player;

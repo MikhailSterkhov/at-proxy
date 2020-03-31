@@ -76,8 +76,6 @@ public class EncryptionResponsePacket implements ClientPacket {
                         String playerName = loginResult.getName();
                         UUID uuid = UUID.fromString(loginResult.getId());
 
-                        System.out.println("encryption uuid: " + uuid);
-
                         packetDecoder.getLastLoginRequest().finish(channel, uuid, playerName);
                         return;
                     }

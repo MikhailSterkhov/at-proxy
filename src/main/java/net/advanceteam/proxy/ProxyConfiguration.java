@@ -2,8 +2,8 @@ package net.advanceteam.proxy;
 
 import lombok.*;
 import net.advanceteam.proxy.common.config.FileConfiguration;
-import net.advanceteam.proxy.connection.server.ProxyServer;
-import net.advanceteam.proxy.connection.server.BukkitServer;
+import net.advanceteam.proxy.connection.server.impl.ProxyServer;
+import net.advanceteam.proxy.connection.server.impl.BukkitServer;
 
 import java.io.File;
 import java.io.IOException;

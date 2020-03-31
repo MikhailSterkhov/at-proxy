@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.advanceteam.proxy.common.event.ProxyEvent;
 import net.advanceteam.proxy.connection.player.Player;
-import net.advanceteam.proxy.connection.server.impl.Server;
+import net.advanceteam.proxy.connection.server.Server;
 
 @RequiredArgsConstructor
 @Getter

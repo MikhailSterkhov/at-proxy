@@ -1,6 +1,7 @@
 package net.advanceteam.proxy.netty.protocol.client.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -69,6 +70,10 @@ public class ClientPacketDecoder extends ByteToMessageDecoder {
         }
 
         ClientPacket clientPacket = packetManager.getNewPacket(packetType, clientVersion.getVersion(), packetId);
+
+        //todo: немного нужный дебаг, временно
+        System.out.println("bytebuf dump: " + ByteBufUtil.prettyHexDump(byteBuf));
+        System.out.println("bytes: " + channelPacketBuffer.readableBytes());
 
         if (AdvanceProxy.getInstance().getProxyConfig().getProxySettings().isLogReadPacket()) {
             AdvanceProxy.getInstance().getLogger().info("Reading packet @" + clientPacket.getClass().getSimpleName() + "(" + packetId + ")");

@@ -7,6 +7,7 @@ import org.fusesource.jansi.Ansi;
 
 public class ProxyBootstrap {
 
+
     /**
      * Презапуск AdvanceTeam Proxy.
      *
@@ -20,13 +21,17 @@ public class ProxyBootstrap {
         System.out.println("          |                         [Proxy authors]:                       |");
         System.out.println("          |                                                                |");
         System.out.println("          |         ItzStonlex                          GitCoder           |");
-        System.out.println("          |   https://vk.com/itzstonlex         https://vk.com/james_the   |");
+        System.out.println("          |   https://vk.com/itzstonlex         https://vk.com/gitcoder    |");
         System.out.println("          |                                                                |");
         System.out.println("          ------------------------------------------------------------------");
         System.out.println();
         System.out.println("| Initializing AdvanceTeam Proxy...");
         System.out.println();
         System.out.println();
+
+        System.setProperty("proxy.name", "AdvanceProxy");
+        System.setProperty("proxy.version", "1.0");
+        System.setProperty("proxy.authors", "ItzStonlex & GitCoder");
 
         long startMills = System.currentTimeMillis();
 

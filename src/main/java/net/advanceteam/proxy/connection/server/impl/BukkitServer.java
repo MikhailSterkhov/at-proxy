@@ -1,11 +1,11 @@
-package net.advanceteam.proxy.connection.server;
+package net.advanceteam.proxy.connection.server.impl;
 
 import io.netty.channel.Channel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.advanceteam.proxy.connection.player.Player;
-import net.advanceteam.proxy.connection.server.impl.Server;
+import net.advanceteam.proxy.connection.server.Server;
 import net.advanceteam.proxy.netty.protocol.client.packet.game.PluginMessagePacket;
 
 import java.util.List;
