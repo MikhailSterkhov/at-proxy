@@ -82,7 +82,7 @@ public class LoginRequestPacket implements ClientPacket {
         ClientPacketDecoder packetDecoder = channel.pipeline().get(ClientPacketDecoder.class);
         ClientVersion clientVersion = packetDecoder.getClientVersion();
 
-        Player player = new Player (
+        Player player = new Player(
                 playerName, uuid, null,
 
                 (InetSocketAddress) channel.remoteAddress(),
