@@ -10,6 +10,7 @@ import net.advanceteam.proxy.AdvanceProxy;
 import net.advanceteam.proxy.common.chat.ChatColor;
 import net.advanceteam.proxy.connection.player.Player;
 import net.advanceteam.proxy.connection.server.Server;
+import net.advanceteam.proxy.netty.protocol.packet.MinecraftPacket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,11 @@ public class ProxyServer implements Server {
 
 
     @Override
+    public String toString() {
+        return getInetAddress() + "(" + name + ")";
+    }
+
+    @Override
     public final int getOnlineCount() {
         return advanceBungee.getOnlineCount();
     }
@@ -64,8 +70,8 @@ public class ProxyServer implements Server {
     }
 
     @Override
-    public String toString() {
-        return getInetAddress() + "(" + name + ")";
+    public void sendPacket(MinecraftPacket minecraftPacket) {
+        serverChannel.writeAndFlush(minecraftPacket);
     }
 
 }

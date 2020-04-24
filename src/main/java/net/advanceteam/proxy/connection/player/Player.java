@@ -1,9 +1,8 @@
 package net.advanceteam.proxy.connection.player;
 
 import io.netty.channel.Channel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import net.advanceteam.proxy.AdvanceProxy;
 import net.advanceteam.proxy.common.callback.Callback;
 import net.advanceteam.proxy.common.chat.ChatMessageType;
@@ -15,14 +14,12 @@ import net.advanceteam.proxy.common.command.type.CommandSendingType;
 import net.advanceteam.proxy.common.event.impl.ServerConnectEvent;
 import net.advanceteam.proxy.connection.server.Server;
 import net.advanceteam.proxy.connection.server.request.ServerConnectRequest;
-import net.advanceteam.proxy.netty.protocol.client.ClientPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.game.ChatPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.game.DisconnectPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.game.PlayerListHeaderFooterPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.game.TitlePacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.handshake.HandshakePacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.login.LoginRequestPacket;
-import net.advanceteam.proxy.netty.protocol.client.version.ClientVersion;
+import net.advanceteam.proxy.netty.protocol.packet.impl.game.ChatPacket;
+import net.advanceteam.proxy.netty.protocol.packet.impl.game.DisconnectPacket;
+import net.advanceteam.proxy.netty.protocol.packet.impl.handshake.HandshakePacket;
+import net.advanceteam.proxy.netty.protocol.packet.impl.login.LoginRequestPacket;
+import net.advanceteam.proxy.netty.protocol.packet.MinecraftPacket;
+import net.advanceteam.proxy.netty.protocol.version.MinecraftVersion;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -38,7 +35,7 @@ import java.util.UUID;
  * что позволяет ему отправлять сообщения, а также
  * выполнять различные команды от его лица.
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
 public class Player implements CommandSender {
 
@@ -47,20 +44,18 @@ public class Player implements CommandSender {
 
     private Server server;
 
-    private InetSocketAddress address;
+    private final InetSocketAddress address;
 
     private final Channel channel;
 
-    @Setter
-    private List<String> permissions;
+    private final List<String> permissions;
+    private final MinecraftVersion minecraftVersion;
 
-    @Setter
-    private ClientVersion minecraftVersion;
     private boolean connected;
 
-    private HandshakePacket lastHandshake;
-
+    private final HandshakePacket lastHandshake;
     private final CommandSendingType commandSendingType = CommandSendingType.PLAYER;
+
 
 
     /**
@@ -122,7 +117,7 @@ public class Player implements CommandSender {
 
         AdvanceProxy.getInstance().getEventManager().callEvent(event);
 
-        if ( event.isCancelled() ) {
+        if (event.isCancelled()) {
             if (callback != null) {
                 callback.done(ServerConnectRequest.Result.EVENT_CANCEL, null);
             }
@@ -136,7 +131,7 @@ public class Player implements CommandSender {
 
         Server target = event.getTarget();
 
-        if ( server != null && server.equals(target) ) {
+        if (server != null && server.equals(target)) {
             if (callback != null) {
                 callback.done(ServerConnectRequest.Result.ALREADY_CONNECTED, null);
             }
@@ -152,21 +147,24 @@ public class Player implements CommandSender {
 
         this.server = target;
 
-        AdvanceProxy.getInstance().getBootstrapStarter().connectServer(channel.eventLoop(), target.getInetAddress(), future -> {
+        AdvanceProxy.getInstance().getBootstrapManager().connectPlayerToServer(this, channel.eventLoop(), target.getInetAddress(), future -> {
 
             if (callback != null) {
                 callback.done((future.isSuccess()) ? ServerConnectRequest.Result.SUCCESS : ServerConnectRequest.Result.FAIL, future.cause());
             }
 
-            if ( !future.isSuccess() ) {
+            if (!future.isSuccess()) {
                 sendMessage("§cОтключено, невозможно подключиться к серверу!");
 
                 future.channel().close();
                 return;
             }
 
-            sendPacket(lastHandshake);
-            sendPacket(new LoginRequestPacket(name));
+            System.out.println("CONNECT PLAYER TO SERVER " + target.getName());
+            future.channel().writeAndFlush(lastHandshake);
+            future.channel().writeAndFlush(new LoginRequestPacket(name));
+
+            System.out.println("PACKETS HAS BEEN SENDING");
 
             this.connected = true;
         });
@@ -203,9 +201,9 @@ public class Player implements CommandSender {
      * @param title - заголовок
      * @param subtitle - подзаголовок
      */
-    public void sendTitle(String title, String subtitle) {
-        sendTitle(title, subtitle, 1, 3, 1);
-    }
+    //public void sendTitle(String title, String subtitle) {
+    //    sendTitle(title, subtitle, 1, 3, 1);
+    //}
 
     /**
      * Отправить игроку сообщение на экран
@@ -216,35 +214,35 @@ public class Player implements CommandSender {
      * @param stay - время показа
      * @param fadeOut - время ухода
      */
-    public void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-        sendPacket( createTitle(TitlePacket.Action.CLEAR, fadeIn, stay, fadeOut) );
-        sendPacket( createTitle(TitlePacket.Action.RESET, fadeIn, stay, fadeOut) );
-        sendPacket( createTitle(TitlePacket.Action.TIMES, fadeIn, stay, fadeOut) );
-        sendPacket( createTitle(TitlePacket.Action.TITLE, title) );
-        sendPacket( createTitle(TitlePacket.Action.SUBTITLE, subtitle) );
-    }
+    //public void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+    //    sendPacket( createTitle(TitlePacket.Action.CLEAR, fadeIn, stay, fadeOut) );
+    //    sendPacket( createTitle(TitlePacket.Action.RESET, fadeIn, stay, fadeOut) );
+    //    sendPacket( createTitle(TitlePacket.Action.TIMES, fadeIn, stay, fadeOut) );
+    //    sendPacket( createTitle(TitlePacket.Action.TITLE, title) );
+    //    sendPacket( createTitle(TitlePacket.Action.SUBTITLE, subtitle) );
+    //}
 
-    private TitlePacket createTitle(TitlePacket.Action titleAction, int fadeIn, int stay, int fadeOut) {
-        TitlePacket titlePacket = new TitlePacket();
-        titlePacket.setAction( titleAction );
+    //private TitlePacket createTitle(TitlePacket.Action titleAction, int fadeIn, int stay, int fadeOut) {
+    //    TitlePacket titlePacket = new TitlePacket();
+    //    titlePacket.setAction( titleAction );
+    //
+    //    if (titleAction == TitlePacket.Action.TIMES) {
+    //        titlePacket.setFadeIn(fadeIn * 20);
+    //        titlePacket.setStay(stay * 20);
+    //        titlePacket.setFadeOut(fadeOut * 20);
+    //    }
+    //
+    //    return titlePacket;
+    //}
 
-        if (titleAction == TitlePacket.Action.TIMES) {
-            titlePacket.setFadeIn(fadeIn * 20);
-            titlePacket.setStay(stay * 20);
-            titlePacket.setFadeOut(fadeOut * 20);
-        }
-
-        return titlePacket;
-    }
-
-    private TitlePacket createTitle(TitlePacket.Action titleAction, String text) {
-        TitlePacket titlePacket = new TitlePacket();
-        titlePacket.setAction( titleAction );
-
-        titlePacket.setText(text);
-
-        return titlePacket;
-    }
+    //private TitlePacket createTitle(TitlePacket.Action titleAction, String text) {
+    //    TitlePacket titlePacket = new TitlePacket();
+    //
+    //    titlePacket.setAction( titleAction );
+    //    titlePacket.setText(text);
+    //
+    //    return titlePacket;
+    //}
 
     /**
      * Украсить список игроков
@@ -253,9 +251,8 @@ public class Player implements CommandSender {
      * @param footer - нижняя часть
      */
     public void setTab(String header, String footer) {
-        PlayerListHeaderFooterPacket packet = new PlayerListHeaderFooterPacket(header, footer);
-
-        sendPacket( packet );
+        //PlayerListHeaderFooterPacket packet = new PlayerListHeaderFooterPacket(header, footer);
+        //sendPacket( packet );
     }
 
     /**
@@ -340,7 +337,7 @@ public class Player implements CommandSender {
      */
     @Override
     public void sendMessage(ChatMessageType messageType, String message) {
-        sendPacket( new ChatPacket(message, (byte) ChatMessageType.CHAT.ordinal()) );
+        sendPacket(new ChatPacket(message, (byte) ChatMessageType.CHAT.ordinal()));
     }
 
     /**
@@ -357,14 +354,14 @@ public class Player implements CommandSender {
     /**
      * Отправить пакет игроку
      *
-     * @param clientPacket - пакет
+     * @param minecraftPacket - пакет
      */
-    public void sendPacket(ClientPacket clientPacket) {
-        if ( !channel.isOpen() ) {
+    public void sendPacket(MinecraftPacket minecraftPacket) {
+        if (!channel.isOpen()) {
             return;
         }
 
-        channel.writeAndFlush(clientPacket);
+        channel.writeAndFlush(minecraftPacket);
     }
 
 }

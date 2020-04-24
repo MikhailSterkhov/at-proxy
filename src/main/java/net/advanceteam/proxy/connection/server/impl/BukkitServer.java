@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.advanceteam.proxy.connection.player.Player;
 import net.advanceteam.proxy.connection.server.Server;
-import net.advanceteam.proxy.netty.protocol.client.packet.game.PluginMessagePacket;
+import net.advanceteam.proxy.netty.protocol.packet.MinecraftPacket;
 
 import java.util.List;
 
@@ -39,6 +39,11 @@ public class BukkitServer implements Server {
 
     @Override
     public void sendData(String channel, byte[] bytes) {
-        serverChannel.writeAndFlush(new PluginMessagePacket(channel, bytes, false));
+        //serverChannel.writeAndFlush(new PluginMessagePacket(channel, bytes, false));
+    }
+
+    @Override
+    public void sendPacket(MinecraftPacket minecraftPacket) {
+        serverChannel.writeAndFlush(minecraftPacket);
     }
 }

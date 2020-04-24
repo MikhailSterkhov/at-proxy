@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -28,21 +29,15 @@ import net.advanceteam.proxy.common.ping.icon.Favicon;
 import net.advanceteam.proxy.common.plugin.manager.PluginManager;
 import net.advanceteam.proxy.common.scheduler.ProxyScheduler;
 import net.advanceteam.proxy.common.scheduler.SchedulerManager;
-import net.advanceteam.proxy.connection.server.Server;
-import net.advanceteam.proxy.connection.server.impl.ProxyServer;
 import net.advanceteam.proxy.connection.manager.PlayerManager;
 import net.advanceteam.proxy.connection.manager.ServerManager;
 import net.advanceteam.proxy.connection.player.Player;
-import net.advanceteam.proxy.netty.protocol.client.manager.ClientPacketManager;
-import net.advanceteam.proxy.netty.protocol.client.packet.game.*;
-import net.advanceteam.proxy.netty.protocol.client.packet.handshake.HandshakePacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.game.LoginPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.login.*;
-import net.advanceteam.proxy.netty.protocol.client.packet.status.StatusPingPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.status.StatusRequestPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.status.StatusResponsePacket;
-import net.advanceteam.proxy.netty.protocol.client.version.ClientVersion;
-import net.advanceteam.proxy.netty.system.BootstrapStarter;
+import net.advanceteam.proxy.connection.server.Server;
+import net.advanceteam.proxy.connection.server.impl.ProxyServer;
+import net.advanceteam.proxy.netty.bootstrap.BootstrapManager;
+import net.advanceteam.proxy.netty.buffer.ChannelPacketBuffer;
+import net.advanceteam.proxy.netty.protocol.manager.MinecraftPacketManager;
+import net.advanceteam.proxy.netty.protocol.version.MinecraftVersion;
 
 import javax.swing.*;
 import java.awt.*;
@@ -50,7 +45,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +57,7 @@ import java.util.stream.Collectors;
 public final class AdvanceProxy {
 
     @Getter
-    private final ClientPacketManager clientPacketManager = new ClientPacketManager();
+    private final MinecraftPacketManager minecraftPacketManager = new MinecraftPacketManager();
 
     @Getter
     private final ConfigurationManager configManager = new ConfigurationManager();
@@ -68,7 +66,7 @@ public final class AdvanceProxy {
     private final SchedulerManager schedulerManager = new SchedulerManager();
 
     @Getter
-    private final BootstrapStarter bootstrapStarter = new BootstrapStarter();
+    private final BootstrapManager bootstrapManager = new BootstrapManager();
 
     @Getter
     private final CommandManager commandManager = new CommandManager();
@@ -144,31 +142,6 @@ public final class AdvanceProxy {
     public void start(long startMills) throws Exception {
         pluginManager.loadPlugins();
 
-        // ========= // Регистрация пакетов. // ========= //
-        new HandshakePacket();
-
-        //status
-        new StatusRequestPacket();
-        new StatusResponsePacket();
-        new StatusPingPacket();
-
-        //login
-        new EncryptionRequestPacket();
-        new EncryptionResponsePacket();
-        new LoginRequestPacket();
-        new LoginSuccessPacket();
-        new SetCompressionPacket();
-
-        //game
-        new ChatPacket();
-        new DisconnectPacket();
-        new LoginPacket();
-        new PlayerListHeaderFooterPacket();
-        new PluginMessagePacket("client");
-        new PluginMessagePacket("server");
-        new TitlePacket();
-        // ========= // Регистрация пакетов. // ========= //
-
         //Регистрация команд.
         commandManager.registerCommand(null, new PluginsCommand());
         commandManager.registerCommand(null, new ReloadCommand());
@@ -195,6 +168,8 @@ public final class AdvanceProxy {
         logger.info("");
         logger.info(String.format("%sDone(%sms): AdvanceProxy has been started!", ChatColor.GREEN, System.currentTimeMillis() - startMills));
         logger.info(ChatColor.GREEN + "Type \"/ghelp\" to show a Proxy commands.");
+
+        registerChannel("BungeeCord");
     }
 
     /**
@@ -230,7 +205,7 @@ public final class AdvanceProxy {
 
     private void bindProxies() {
         for (ProxyServer proxyServer : proxyConfig.getProxyServerMap().values()) {
-            bootstrapStarter.bindServer(proxyServer.getInetAddress(), future -> {
+            bootstrapManager.bindServer(proxyServer.getInetAddress(), future -> {
 
                 proxyServer.setServerChannel( future.channel() );
 
@@ -274,7 +249,7 @@ public final class AdvanceProxy {
                 }
             };
 
-            bootstrapStarter.connectServer(eventLoops, server.getInetAddress(), channelFutureListener);
+            bootstrapManager.connectServerToProxy(server, eventLoops, channelFutureListener);
         });
     }
 
@@ -311,16 +286,34 @@ public final class AdvanceProxy {
      *
      * @param protocolVersion - версия клиента
      */
-    public PluginMessagePacket registerChannels(int protocolVersion) {
-        if ( protocolVersion >= ClientVersion.V1_13.getVersion() ) {
+    //public PluginMessagePacket registerChannels(int protocolVersion) {
+    //    if (protocolVersion >= MinecraftVersion.V1_13.getVersionId()) {
+    //        return new PluginMessagePacket("minecraft:register", Joiner.on("\00").join(pluginChannels.stream()
+    //                        .map(PluginMessagePacket.MODERNISE)
+    //                        .collect(Collectors.toList())
+    //
+    //        ).getBytes( Charsets.UTF_8 ), false );
+    //    }
+    //
+    //    ChannelPacketBuffer channelPacketBuffer = new ChannelPacketBuffer(Unpooled.buffer());
+    //
+    //    for (String channel : pluginChannels) {
+    //        channelPacketBuffer.writeString(channel);
+    //    }
+    //
+    //    byte[] bytes = new byte[channelPacketBuffer.readableBytes()];
+    //    channelPacketBuffer.readBytes(bytes);
+    //
+    //    return new PluginMessagePacket("REGISTER", bytes, false);
+    //}
 
-            return new PluginMessagePacket("minecraft:register", Joiner.on("\00").join(
-                    pluginChannels.stream().map(PluginMessagePacket.MODERNISE).collect(Collectors.toList())
-
-            ).getBytes( Charsets.UTF_8 ), false );
-        }
-
-        return new PluginMessagePacket("REGISTER", Joiner.on("\00").join(pluginChannels).getBytes( Charsets.UTF_8 ), false);
+    /**
+     * Зарегистрировать каналы для PluginMessage
+     *
+     * @param channel - канал
+     */
+    public void registerChannel(String channel) {
+        pluginChannels.add(channel);
     }
 
     /**

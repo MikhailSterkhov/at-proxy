@@ -1,13 +1,9 @@
 package net.advanceteam.proxy.common.utility;
 
 import java.security.GeneralSecurityException;
-import java.security.Key;
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Random;
 import javax.crypto.Cipher;
@@ -16,8 +12,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
-import net.advanceteam.proxy.netty.protocol.client.packet.login.EncryptionRequestPacket;
-import net.advanceteam.proxy.netty.protocol.client.packet.login.EncryptionResponsePacket;
+import net.advanceteam.proxy.netty.protocol.packet.impl.login.EncryptionRequestPacket;
+import net.advanceteam.proxy.netty.protocol.packet.impl.login.EncryptionResponsePacket;
 
 @UtilityClass
 public class EncryptionUtil {

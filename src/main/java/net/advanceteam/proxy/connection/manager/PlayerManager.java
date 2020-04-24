@@ -16,6 +16,7 @@ public final class PlayerManager {
     @Getter
     private final Map<UUID, Player> uuidPlayerMap = new HashMap<>();
 
+
     /**
      * Добавить игрока
      *
@@ -84,9 +85,15 @@ public final class PlayerManager {
      * @param playerName - ник игрока
      */
     public void disconnectPlayer(String playerName) {
-        AdvanceProxy.getInstance().getLogger().info(
-                String.format("[Player] -> Player %s has disconnected from Proxy", playerName));
+        Player player = getPlayer(playerName);
 
-        this.removePlayer(playerName);
+        if (player == null) {
+            return;
+        }
+
+        AdvanceProxy.getInstance().getLogger().info(
+                String.format("[Player] -> Player %s has disconnected from Proxy", player.getName()));
+
+        removePlayer(player.getName());
     }
 }

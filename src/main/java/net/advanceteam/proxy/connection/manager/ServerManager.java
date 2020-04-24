@@ -75,9 +75,15 @@ public final class ServerManager {
      * @param serverName - имя сервера
      */
     public void disconnectServer(String serverName) {
-        AdvanceProxy.getInstance().getLogger().info(
-                String.format("[Bukkit] -> %s has been disconnected from Proxy", serverName));
+        Server server = getServer(serverName);
 
-        this.removeServer(serverName);
+        if (server == null) {
+            return;
+        }
+
+        AdvanceProxy.getInstance().getLogger().info(
+                String.format("[Bukkit] -> %s has been disconnected from Proxy", server.getName()));
+
+        this.removeServer(server.getName());
     }
 }

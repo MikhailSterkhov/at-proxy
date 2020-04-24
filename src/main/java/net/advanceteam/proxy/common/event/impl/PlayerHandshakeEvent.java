@@ -2,7 +2,7 @@ package net.advanceteam.proxy.common.event.impl;
 
 import lombok.*;
 import net.advanceteam.proxy.common.event.ProxyEvent;
-import net.advanceteam.proxy.netty.protocol.client.packet.handshake.HandshakePacket;
+import net.advanceteam.proxy.netty.protocol.packet.impl.handshake.HandshakePacket;
 
 import java.nio.channels.Channel;
 

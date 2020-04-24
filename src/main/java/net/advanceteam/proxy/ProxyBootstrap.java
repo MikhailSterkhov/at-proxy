@@ -14,6 +14,28 @@ public class ProxyBootstrap {
      * @param args - аргументы.
      */
     public static void main(String[] args) throws Exception {
+        printInfo();
+        setProperties();
+
+        System.out.println("| Initializing AdvanceTeam Proxy...");
+        System.out.println();
+        System.out.println();
+
+        long startMills = System.currentTimeMillis();
+
+        AdvanceProxy advanceProxy = new AdvanceProxy();
+        advanceProxy.start(startMills);
+
+        startConsoleReader(advanceProxy);
+    }
+
+    private static void setProperties() {
+        System.setProperty("proxy.name", "AdvanceProxy");
+        System.setProperty("proxy.version", "1.0");
+        System.setProperty("proxy.authors", "ItzStonlex & GitCoder");
+    }
+
+    private static void printInfo() {
         System.out.println();
         System.out.println("          ------------------------------------------------------------------");
         System.out.println("          |                                                                |");
@@ -25,19 +47,9 @@ public class ProxyBootstrap {
         System.out.println("          |                                                                |");
         System.out.println("          ------------------------------------------------------------------");
         System.out.println();
-        System.out.println("| Initializing AdvanceTeam Proxy...");
-        System.out.println();
-        System.out.println();
+    }
 
-        System.setProperty("proxy.name", "AdvanceProxy");
-        System.setProperty("proxy.version", "1.0");
-        System.setProperty("proxy.authors", "ItzStonlex & GitCoder");
-
-        long startMills = System.currentTimeMillis();
-
-        AdvanceProxy advanceProxy = new AdvanceProxy();
-        advanceProxy.start(startMills);
-
+    private static void startConsoleReader(AdvanceProxy advanceProxy) throws Exception {
         String line;
         String linePrompt = Ansi.ansi().eraseLine(Ansi.Erase.ALL).toString() + ConsoleReader.RESET_LINE
                 + Ansi.ansi().fg(Ansi.Color.GREEN).toString()
