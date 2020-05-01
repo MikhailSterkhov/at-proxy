@@ -20,7 +20,6 @@ public class Varint21LengthFieldEncoder extends MessageToByteEncoder<ByteBuf> {
 
         channelPacketBuffer.writeVarInt(bodyLen, byteBuf2);
         byteBuf2.writeBytes(byteBuf);
-
     }
 
     private static int varintSize(int paramInt) {

@@ -5,7 +5,6 @@ import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -35,8 +34,8 @@ import net.advanceteam.proxy.connection.player.Player;
 import net.advanceteam.proxy.connection.server.Server;
 import net.advanceteam.proxy.connection.server.impl.ProxyServer;
 import net.advanceteam.proxy.netty.bootstrap.BootstrapManager;
-import net.advanceteam.proxy.netty.buffer.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.manager.MinecraftPacketManager;
+import net.advanceteam.proxy.netty.protocol.packet.impl.game.PluginMessagePacket;
 import net.advanceteam.proxy.netty.protocol.version.MinecraftVersion;
 
 import javax.swing.*;
@@ -286,26 +285,13 @@ public final class AdvanceProxy {
      *
      * @param protocolVersion - версия клиента
      */
-    //public PluginMessagePacket registerChannels(int protocolVersion) {
-    //    if (protocolVersion >= MinecraftVersion.V1_13.getVersionId()) {
-    //        return new PluginMessagePacket("minecraft:register", Joiner.on("\00").join(pluginChannels.stream()
-    //                        .map(PluginMessagePacket.MODERNISE)
-    //                        .collect(Collectors.toList())
-    //
-    //        ).getBytes( Charsets.UTF_8 ), false );
-    //    }
-    //
-    //    ChannelPacketBuffer channelPacketBuffer = new ChannelPacketBuffer(Unpooled.buffer());
-    //
-    //    for (String channel : pluginChannels) {
-    //        channelPacketBuffer.writeString(channel);
-    //    }
-    //
-    //    byte[] bytes = new byte[channelPacketBuffer.readableBytes()];
-    //    channelPacketBuffer.readBytes(bytes);
-    //
-    //    return new PluginMessagePacket("REGISTER", bytes, false);
-    //}
+    public PluginMessagePacket registerChannels(int protocolVersion) {
+        if ( protocolVersion >= MinecraftVersion.V1_13.getVersionId()) {
+            return new PluginMessagePacket("minecraft:register", Joiner.on("\00").join(pluginChannels.stream().map(PluginMessagePacket.MODERNISE::apply).collect(Collectors.toList())).getBytes(Charsets.UTF_8), false );
+        }
+
+        return new PluginMessagePacket("REGISTER", Joiner.on("\00").join(pluginChannels).getBytes(Charsets.UTF_8), false );
+    }
 
     /**
      * Зарегистрировать каналы для PluginMessage

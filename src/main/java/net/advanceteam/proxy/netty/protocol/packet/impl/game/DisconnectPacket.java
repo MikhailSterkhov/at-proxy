@@ -20,7 +20,9 @@ public class DisconnectPacket implements MinecraftPacket {
     }
 
     @Override
-    public void readPacket(ChannelPacketBuffer channelPacketBuffer, int clientVersion) { }
+    public void readPacket(ChannelPacketBuffer channelPacketBuffer, int clientVersion) {
+        this.reason = channelPacketBuffer.readString();
+    }
 
     @Override
     public void handle(Channel channel) { }

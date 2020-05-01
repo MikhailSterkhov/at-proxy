@@ -1,6 +1,7 @@
 package net.advanceteam.proxy.netty.protocol.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.Getter;
@@ -22,7 +23,7 @@ public class MinecraftPacketDecoder extends ByteToMessageDecoder {
 
     @Setter
     @Getter
-    private MinecraftVersion minecraftVersion = MinecraftVersion.V1_15_1;
+    private MinecraftVersion minecraftVersion = MinecraftVersion.V1_15_2;
 
     @Setter
     @Getter
@@ -63,12 +64,15 @@ public class MinecraftPacketDecoder extends ByteToMessageDecoder {
         int packetId = channelPacketBuffer.readVarInt();
 
         if (!packetManager.packetIsExists(packetId)) {
-            list.add(new UndefinedPacket(packetId, byteBuf.copy()));
-
+            //Клиенту приходит bad packet, если отправлять его обратно
             return;
         }
 
         MinecraftPacket minecraftPacket = packetManager.getNewPacket(protocolStatus, minecraftVersion.getVersionId(), packetId);
+
+        if (minecraftPacket == null) {
+            return;
+        }
 
         if (AdvanceProxy.getInstance().getProxyConfig().getProxySettings().isLogReadPacket()) {
             AdvanceProxy.getInstance().getLogger().info("Read packet @" + minecraftPacket.getClass().getSimpleName() + "(" + packetId + ")");

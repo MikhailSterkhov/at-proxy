@@ -13,8 +13,8 @@ public class ServerPacketHandler extends PacketHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext handlerContext) { }
 
-    //@Override //todo: мне нужно видеть все ошибка пока что
-    //public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable cause) { }
+    @Override
+    public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable cause) { }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, MinecraftPacket clientPacket) {

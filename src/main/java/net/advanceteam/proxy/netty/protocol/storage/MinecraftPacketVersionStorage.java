@@ -29,17 +29,21 @@ public class MinecraftPacketVersionStorage {
      * @param packetId      - ид пакета.
      */
     public MinecraftPacket getPacket(ProtocolStatus protocolType, int packetId) {
-        return packetMap.keySet().stream()
+        MinecraftPacketInfo minecraftPacketInfo = packetMap.keySet().stream()
 
                 .filter(packetInfo -> packetInfo.getProtocolStatus().equals(protocolType) && packetInfo.getPacketId() == packetId)
                 .findFirst()
-                .orElse(null)
+                .orElse(null);
 
-                .getPacketInstance();
+        if (minecraftPacketInfo == null) {
+            return null;
+        }
+
+        return minecraftPacketInfo.getPacketInstance();
     }
 
     /**
-     * Получить зарегистрированный пакет по его номеру
+     * Получить зарегистрированный пакет по его классу
      *
      * @param protocolType  - тип пакета
      * @param packetClass   - класс пакета.
@@ -60,13 +64,17 @@ public class MinecraftPacketVersionStorage {
      * @param packetClass - класс пакета
      */
     public int getPacketId(Class<? extends MinecraftPacket> packetClass) {
-        return packetMap.keySet().stream()
+        MinecraftPacketInfo minecraftPacketInfo = packetMap.keySet().stream()
 
                 .filter(packetInfo -> packetInfo.getPacketClass().isAssignableFrom(packetClass))
                 .findFirst()
-                .orElse(null)
+                .orElse(null);
 
-                .getPacketId();
+        if (minecraftPacketInfo == null) {
+            return -1;
+        }
+
+        return minecraftPacketInfo.getPacketId();
     }
 
     /**

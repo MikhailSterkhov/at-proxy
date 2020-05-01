@@ -15,6 +15,8 @@ public final class MinecraftPacketManager {
     private final TIntObjectHashMap<MinecraftPacketVersionStorage> packetToClientMap = new TIntObjectHashMap<>();
     private final TIntObjectHashMap<MinecraftPacketVersionStorage> packetToServerMap = new TIntObjectHashMap<>();
 
+    public final int MAX_PACKET_ID = 0xFF;
+
 
     public MinecraftPacketManager() {
         for (MinecraftVersion clientVersion : MinecraftVersion.values()) {
@@ -62,6 +64,10 @@ public final class MinecraftPacketManager {
     }
 
     public MinecraftPacket getNewPacket(ProtocolStatus protocolType, int versionId, int packetId) {
+        if (packetId > MAX_PACKET_ID) {
+            return null;
+        }
+
         return getPacketStorage(ProtocolDirection.TO_SERVER, versionId).getPacket(protocolType, packetId);
     }
 
@@ -71,7 +77,13 @@ public final class MinecraftPacketManager {
 
     public int getPacketId(Class<? extends MinecraftPacket> clientPacketClass, int clientVersion) {
         MinecraftPacketVersionStorage clientPacketVersionStorage = getPacketStorage(ProtocolDirection.TO_CLIENT, clientVersion);
+        int packetId = clientPacketVersionStorage.getPacketId(clientPacketClass);
 
-        return clientPacketVersionStorage.getPacketId(clientPacketClass);
+        if (packetId < 0) {
+            clientPacketVersionStorage = getPacketStorage(ProtocolDirection.TO_SERVER, clientVersion);
+            packetId = clientPacketVersionStorage.getPacketId(clientPacketClass);
+        }
+
+        return packetId;
     }
 }

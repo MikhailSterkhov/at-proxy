@@ -15,6 +15,7 @@ import net.advanceteam.proxy.connection.player.Player;
 import net.advanceteam.proxy.connection.server.Server;
 import net.advanceteam.proxy.netty.buffer.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.codec.MinecraftPacketDecoder;
+import net.advanceteam.proxy.netty.protocol.codec.MinecraftPacketEncoder;
 import net.advanceteam.proxy.netty.protocol.codec.compress.PacketCompressor;
 import net.advanceteam.proxy.netty.protocol.codec.compress.PacketDecompressor;
 import net.advanceteam.proxy.netty.protocol.packet.MinecraftPacket;
@@ -129,6 +130,7 @@ public class LoginRequestPacket implements MinecraftPacket {
     private void connect(UUID uuid, Channel channel, Server server) {
         List<String> permissions = new ArrayList<>();
 
+        //инициализируем игрока
         MinecraftPacketDecoder packetDecoder = channel.pipeline().get(MinecraftPacketDecoder.class);
         MinecraftVersion clientVersion = packetDecoder.getMinecraftVersion();
 
@@ -143,32 +145,41 @@ public class LoginRequestPacket implements MinecraftPacket {
 
         channel.attr(ProtocolReference.PLAYER_ATTRIBUTE_KEY).set(player);
 
+        //отправляем пакет логина
         channel.writeAndFlush(new LoginSuccessPacket(uuid.toString(), playerName));
 
+        //устанавливаем тип протокола на игровой
         AdvanceProxy.getInstance().getMinecraftPacketManager().setProtocolStatus(channel, ProtocolStatus.GAME);
 
-        //channel.writeAndFlush( AdvanceProxy.getInstance().registerChannels(clientVersion.getVersion()) );
+        //отправляем пакет о регистрации каналов
+        channel.writeAndFlush(AdvanceProxy.getInstance().registerChannels(clientVersion.getVersionId()));
 
+        //подключаем игрока к проксе
         AdvanceProxy.getInstance().getPlayerManager().connectPlayer(player);
         player.connect(server);
     }
 
     private void setCompressionThreshold(Channel channel, int compressionThreshold) {
         if (channel.pipeline().get(PacketCompressor.class) == null && compressionThreshold != -1) {
+            channel.pipeline().flush();
             channel.pipeline().addBefore("packet-encoder", "compress", new PacketCompressor());
         }
 
         if (compressionThreshold != -1) {
+            channel.pipeline().flush();
             channel.pipeline().get(PacketCompressor.class).setThreshold(compressionThreshold);
         } else {
             channel.pipeline().remove("compress");
         }
 
         if (channel.pipeline().get(PacketDecompressor.class) == null && compressionThreshold != -1) {
+            channel.pipeline().flush();
             channel.pipeline().addBefore("packet-decoder", "decompress", new PacketDecompressor());
         }
 
         if (compressionThreshold == -1) {
+            System.out.println("remove decompressor");
+
             channel.pipeline().remove("decompress");
         }
     }

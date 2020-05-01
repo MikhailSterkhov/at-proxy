@@ -14,11 +14,14 @@ import net.advanceteam.proxy.common.command.type.CommandSendingType;
 import net.advanceteam.proxy.common.event.impl.ServerConnectEvent;
 import net.advanceteam.proxy.connection.server.Server;
 import net.advanceteam.proxy.connection.server.request.ServerConnectRequest;
+import net.advanceteam.proxy.netty.protocol.codec.MinecraftPacketDecoder;
+import net.advanceteam.proxy.netty.protocol.codec.MinecraftPacketEncoder;
 import net.advanceteam.proxy.netty.protocol.packet.impl.game.ChatPacket;
 import net.advanceteam.proxy.netty.protocol.packet.impl.game.DisconnectPacket;
 import net.advanceteam.proxy.netty.protocol.packet.impl.handshake.HandshakePacket;
 import net.advanceteam.proxy.netty.protocol.packet.impl.login.LoginRequestPacket;
 import net.advanceteam.proxy.netty.protocol.packet.MinecraftPacket;
+import net.advanceteam.proxy.netty.protocol.status.ProtocolStatus;
 import net.advanceteam.proxy.netty.protocol.version.MinecraftVersion;
 
 import java.net.InetSocketAddress;
@@ -112,6 +115,10 @@ public class Player implements CommandSender {
      * @param connectRequest - запрос на подключение к серверу
      */
     private void connect(ServerConnectRequest connectRequest) {
+        if (lastHandshake == null) {
+            return;
+        }
+
         Callback<ServerConnectRequest.Result> callback = connectRequest.getCallback();
         ServerConnectEvent event = new ServerConnectEvent(this, connectRequest.getTarget(), connectRequest.getReason());
 
@@ -160,11 +167,12 @@ public class Player implements CommandSender {
                 return;
             }
 
-            System.out.println("CONNECT PLAYER TO SERVER " + target.getName());
-            future.channel().writeAndFlush(lastHandshake);
-            future.channel().writeAndFlush(new LoginRequestPacket(name));
+            System.out.println("LAST PLAYER HANDSHAKE" + lastHandshake);
 
-            System.out.println("PACKETS HAS BEEN SENDING");
+            future.channel().writeAndFlush(lastHandshake);
+
+            AdvanceProxy.getInstance().getMinecraftPacketManager().setProtocolStatus(future.channel(), ProtocolStatus.LOGIN);
+            future.channel().writeAndFlush(new LoginRequestPacket(name));
 
             this.connected = true;
         });

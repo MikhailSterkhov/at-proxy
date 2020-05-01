@@ -3,3 +3,6 @@ target
 META-INF
 out
 *.iml
+plugins
+logs
+config.yml

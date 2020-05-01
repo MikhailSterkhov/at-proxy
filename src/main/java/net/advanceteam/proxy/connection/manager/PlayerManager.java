@@ -74,7 +74,8 @@ public final class PlayerManager {
      * @param player - игрока
      */
     public void connectPlayer(Player player) {
-        AdvanceProxy.getInstance().getLogger().info(String.format("[Player] -> Player %s has connected to Proxy", player.getName()));
+        AdvanceProxy.getInstance().getLogger().info(
+                String.format("[Player] -> Player %s has connected to Proxy", player.getName() + "(" + player.getMinecraftVersion() + ")"));
 
         this.addPlayer(player.getName(), player);
     }
@@ -92,7 +93,7 @@ public final class PlayerManager {
         }
 
         AdvanceProxy.getInstance().getLogger().info(
-                String.format("[Player] -> Player %s has disconnected from Proxy", player.getName()));
+                String.format("[Player] -> Player %s has disconnected from Proxy", player.getName() + "(" + player.getMinecraftVersion() + ")"));
 
         removePlayer(player.getName());
     }

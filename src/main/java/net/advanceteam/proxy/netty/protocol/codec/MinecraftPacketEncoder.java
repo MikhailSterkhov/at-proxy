@@ -10,17 +10,14 @@ import net.advanceteam.proxy.netty.buffer.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.packet.MinecraftPacket;
 import net.advanceteam.proxy.netty.protocol.manager.MinecraftPacketManager;
 import net.advanceteam.proxy.netty.protocol.packet.impl.UndefinedPacket;
+import net.advanceteam.proxy.netty.protocol.packet.impl.handshake.HandshakePacket;
 import net.advanceteam.proxy.netty.protocol.version.MinecraftVersion;
 
 public class MinecraftPacketEncoder extends MessageToByteEncoder<MinecraftPacket> {
 
     @Setter
     @Getter
-    private MinecraftVersion minecraftVersion = MinecraftVersion.V1_15_1;
-
-    @Setter
-    @Getter
-    private String packetType = "HANDSHAKE_PACKET";
+    private MinecraftVersion minecraftVersion = MinecraftVersion.V1_15_2;
 
 
     /**
@@ -43,11 +40,23 @@ public class MinecraftPacketEncoder extends MessageToByteEncoder<MinecraftPacket
             packetId = packetManager.getPacketId(minecraftPacket.getClass(), minecraftVersion.getVersionId());
         }
 
+        if (packetId > packetManager.MAX_PACKET_ID) {
+            return;
+        }
+
         if (AdvanceProxy.getInstance().getProxyConfig().getProxySettings().isLogWritePacket()) {
             AdvanceProxy.getInstance().getLogger().info("Write packet @" + minecraftPacket.getClass().getSimpleName() + "(" + packetId + ")");
         }
 
-        channelPacketBuffer.writeVarInt( packetId );
-        minecraftPacket.writePacket(channelPacketBuffer, minecraftVersion.getVersionId());
+        int clientVersionId = minecraftVersion.getVersionId();
+
+        if (minecraftPacket instanceof HandshakePacket) {
+            clientVersionId = ((HandshakePacket) minecraftPacket).getClientVersion();
+
+            this.minecraftVersion = MinecraftVersion.getByVersionId(clientVersionId);
+        }
+
+        channelPacketBuffer.writeVarInt(packetId);
+        minecraftPacket.writePacket(channelPacketBuffer, clientVersionId);
     }
 }

@@ -4,6 +4,7 @@ import net.advanceteam.proxy.netty.protocol.direction.ProtocolDirection;
 import net.advanceteam.proxy.netty.protocol.packet.impl.game.ChatPacket;
 import net.advanceteam.proxy.netty.protocol.packet.impl.game.DisconnectPacket;
 import net.advanceteam.proxy.netty.protocol.packet.impl.game.LoginPacket;
+import net.advanceteam.proxy.netty.protocol.packet.impl.game.PluginMessagePacket;
 import net.advanceteam.proxy.netty.protocol.packet.impl.handshake.HandshakePacket;
 import net.advanceteam.proxy.netty.protocol.packet.impl.login.*;
 import net.advanceteam.proxy.netty.protocol.packet.impl.status.StatusPingPacket;
@@ -38,6 +39,59 @@ public enum ProtocolStatus {
     }},
 
     GAME {{
+        ProtocolDirection.TO_SERVER.registerPacket(this, PluginMessagePacket::new, new HashMap<MinecraftVersion, Integer>() {{
+            put(MinecraftVersion.V1_8, 0x17);
+            put(MinecraftVersion.V1_9, 0x09);
+            put(MinecraftVersion.V1_9_1, 0x09);
+            put(MinecraftVersion.V1_9_2, 0x09);
+            put(MinecraftVersion.V1_9_3, 0x09);
+            put(MinecraftVersion.V1_9_4, 0x09);
+            put(MinecraftVersion.V1_10, 0x09);
+            put(MinecraftVersion.V1_11, 0x09);
+            put(MinecraftVersion.V1_11_1, 0x09);
+            put(MinecraftVersion.V1_11_2, 0x09);
+            put(MinecraftVersion.V1_12, 0x09);
+            put(MinecraftVersion.V1_12_1, 0x09);
+            put(MinecraftVersion.V1_12_2, 0x09);
+            put(MinecraftVersion.V1_13, 0x09);
+            put(MinecraftVersion.V1_13_1, 0x09);
+            put(MinecraftVersion.V1_13_2, 0x09);
+            put(MinecraftVersion.V1_14, 0x09);
+            put(MinecraftVersion.V1_14_1, 0x09);
+            put(MinecraftVersion.V1_14_2, 0x09);
+            put(MinecraftVersion.V1_14_3, 0x09);
+            put(MinecraftVersion.V1_14_4, 0x09);
+            put(MinecraftVersion.V1_15, 0x09);
+            put(MinecraftVersion.V1_15_1, 0x09);
+            put(MinecraftVersion.V1_15_2, 0x09);
+        }});
+
+        ProtocolDirection.TO_CLIENT.registerPacket(this, PluginMessagePacket::new, new HashMap<MinecraftVersion, Integer>() {{
+            put(MinecraftVersion.V1_8, 0x3F);
+            put(MinecraftVersion.V1_9, 0x18);
+            put(MinecraftVersion.V1_9_1, 0x18);
+            put(MinecraftVersion.V1_9_2, 0x18);
+            put(MinecraftVersion.V1_9_3, 0x18);
+            put(MinecraftVersion.V1_9_4, 0x18);
+            put(MinecraftVersion.V1_10, 0x18);
+            put(MinecraftVersion.V1_11, 0x18);
+            put(MinecraftVersion.V1_11_1, 0x18);
+            put(MinecraftVersion.V1_11_2, 0x18);
+            put(MinecraftVersion.V1_12, 0x18);
+            put(MinecraftVersion.V1_12_1, 0x18);
+            put(MinecraftVersion.V1_12_2, 0x18);
+            put(MinecraftVersion.V1_13, 0x18);
+            put(MinecraftVersion.V1_13_1, 0x18);
+            put(MinecraftVersion.V1_13_2, 0x18);
+            put(MinecraftVersion.V1_14, 0x47);
+            put(MinecraftVersion.V1_14_1, 0x47);
+            put(MinecraftVersion.V1_14_2, 0x47);
+            put(MinecraftVersion.V1_14_3, 0x47);
+            put(MinecraftVersion.V1_14_4, 0x47);
+            put(MinecraftVersion.V1_15, 0x47);
+            put(MinecraftVersion.V1_15_1, 0x47);
+            put(MinecraftVersion.V1_15_2, 0x47);
+        }});
         ProtocolDirection.TO_CLIENT.registerPacket(this, DisconnectPacket::new, 0x00);
         ProtocolDirection.TO_CLIENT.registerPacket(this, ChatPacket::new, new HashMap<MinecraftVersion, Integer>() {{
             put(MinecraftVersion.V1_8, 0x02);

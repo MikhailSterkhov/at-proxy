@@ -4,10 +4,12 @@ import io.netty.channel.Channel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import net.advanceteam.proxy.AdvanceProxy;
 import net.advanceteam.proxy.connection.server.impl.ProxyServer;
 import net.advanceteam.proxy.netty.buffer.ChannelPacketBuffer;
 import net.advanceteam.proxy.netty.protocol.codec.MinecraftPacketDecoder;
+import net.advanceteam.proxy.netty.protocol.codec.MinecraftPacketEncoder;
 import net.advanceteam.proxy.netty.protocol.packet.MinecraftPacket;
 import net.advanceteam.proxy.netty.protocol.status.ProtocolStatus;
 import net.advanceteam.proxy.netty.protocol.version.MinecraftVersion;
@@ -15,6 +17,7 @@ import net.advanceteam.proxy.netty.protocol.version.MinecraftVersion;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class HandshakePacket implements MinecraftPacket {
 
     private int clientVersion;
@@ -47,9 +50,12 @@ public class HandshakePacket implements MinecraftPacket {
 
         //decoder options set
         MinecraftPacketDecoder packetDecoder = channel.pipeline().get(MinecraftPacketDecoder.class);
+        MinecraftPacketEncoder packetEncoder = channel.pipeline().get(MinecraftPacketEncoder.class);
 
         packetDecoder.setLastHandshake(this);
+
         packetDecoder.setMinecraftVersion(minecraftVersion);
+        packetEncoder.setMinecraftVersion(minecraftVersion);
 
         //update host
         AdvanceProxy.getInstance().setProxyHost(host);
